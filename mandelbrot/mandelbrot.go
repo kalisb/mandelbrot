@@ -101,13 +101,8 @@ func oneToOneFillImg(m *img) {
 	for i, row := range m.m {
 		for j := range row {
 			go func(i, j int) {
-				start := time.Now()
-				log.Println("Thread-", i, ".", j, " started." )
 				fillPixel(m, i, j)
-				log.Println("Thread-", i, ".", j, " stopped." )
-				elapsed := time.Since(start)
-  				log.Println("Thread-", i, ".", j, " execution time was", elapsed)
-				wg.Done()
+				defer wg.Done()
 			}(i, j)
 		}
 	}
@@ -166,7 +161,7 @@ func worker(id string, m *img, w int, h int, jobs <-chan struct{ i, j int }, res
 	divide := checkBlock(t, m, w, h)
 	if divide && (h > 4 || w > 4) {
 		devide(id, m, w, h, t)		
-	} else if (h < 4 || w < 4) {
+	} else if (h <= 4 || w <= 4) {
 		var limit_w = t.i + w
 		if (t.i + w >= m.w) {
 			limit_w = m.w - 1
@@ -238,17 +233,11 @@ func checkBlock(t struct{ i, j int }, m *img, w int, h int) bool{
 
 
 func perPixel(m *img, start_x int, end_x int, start_y int, end_y int) {
-	//var wg sync.WaitGroup
 	for i := start_x; i < end_x; i++ {
-	//	wg.Add(1)
-	//	go func(i int) {
-		//	defer wg.Done()
-			for j := start_y; j < end_y; j++ {
-				fillPixel(m, i, j)
-			}
-	//	}(i)
+		for j := start_y; j < end_y; j++ {
+			fillPixel(m, i, j)
+		}
 	}
-//	wg.Wait()
 }
 
 func fillPixel(m *img, i, j int) int {
